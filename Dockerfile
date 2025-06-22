@@ -1,14 +1,21 @@
 FROM python:3.11-slim
-
+    
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     HF_HOME=/app/.cache
 
+# HF Space offline settings
+    HF_HUB_OFFLINE=1 \
+    HF_DATASETS_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+    
+
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git curl ca-certificates && \
+    apt-get install -y --no-install-recommends git git-lfs curl ca-certificates && \
+    git lfs install && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -22,16 +29,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download(
-    "intfloat/multilingual-e5-base",
+    repo_id="intfloat/multilingual-e5-base",
     cache_dir="/app/.cache",
     allow_patterns=[
-        "model.safetensors",
-        "config.json",
-        "sentencepiece.*",
-        "tokenizer.json",
-        "tokenizer_config.json",
-	"sentence_bert_config.json"
+        "*.json","*.safetensors","*.bin",
+        "sentencepiece*","vocab*","tokenizer*",
+        "modules.json","*Pooling/**","*SentenceTransformer/**"
     ],
+    local_dir_use_symlinks=False,
 )
 PY
 
