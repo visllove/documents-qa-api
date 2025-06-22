@@ -30,6 +30,7 @@ snapshot_download(
         "sentencepiece.*",
         "tokenizer.json",
         "tokenizer_config.json",
+	"sentence_bert_config.json"
     ],
 )
 PY
