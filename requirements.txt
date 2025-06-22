@@ -12,3 +12,4 @@ langchain-openai>=0.3
 transformers==4.52.*
 huggingface-hub>=0.33
 sentence-transformers>=2.6
+python-multipart>=0.0.20
