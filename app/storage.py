@@ -102,7 +102,8 @@ def preload_documents_from_chroma() -> None:
         file_id = md.get('file_id')
         if not file_id or file_id in seen:
             continue
-    path = DATA_DIR / f'{file_id}.docx'
-    if path.exists():
-        documents[file_id] = DocumentInfo(file_path=path, status='ready')
-        seen.add(file_id)
+        
+        path = DATA_DIR / f'{file_id}.docx'
+        if path.exists():
+            documents[file_id] = DocumentInfo(file_path=path, status='ready')
+            seen.add(file_id)
