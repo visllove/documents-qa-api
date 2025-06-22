@@ -4,8 +4,7 @@ FROM python:3.11-slim
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    HF_HOME=/app/.cache \
-    TRANSFORMERS_CACHE=/app/.cache
+    HF_HOME=/app/.cache
 
 
 RUN apt-get update && \
@@ -19,6 +18,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 
+# Загрузка модели для эмбеддингов
 RUN python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download(
