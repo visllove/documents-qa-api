@@ -1,4 +1,4 @@
-# Sapsan Documents QA
+# Documents QA API
 
 <p align="center">
   <img src="https://img.shields.io/badge/Стек-FastAPI • LangChain • Docker-blue" />
