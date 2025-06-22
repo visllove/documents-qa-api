@@ -75,5 +75,10 @@ git remote add origin https://huggingface.co/spaces/<user>/documents_qa_project.
 git push -u origin main
 ```
 
+**Возможные улучшения и идеи**
+* Переход на полноценную векторную БД, например, на Pinecone или PGvector
+* Связка с удобным UI
+* Новые эндпоинты, например, для возможности отправлять вопросы сразу по нескольким файлам
+
 # Работающая версия на HuggingFace:
 https://vislove-documents-qa-api.hf.space/docs
