@@ -5,7 +5,7 @@ services:
       # platform: linux/amd64 
     environment:
 
-      # Читаем переменные из .env
+      # Reading environment variables
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-""}
       LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
       PORT: 7860
@@ -13,10 +13,10 @@ services:
       - "7860:7860"
     volumes:
 
-      # кеш моделей
+      # model cache
       - hf_cache:/app/.cache/huggingface
 
-    # для рестартов, если приложение упадет
+    # for restarts
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7860/healthz"]
       interval: 30s
