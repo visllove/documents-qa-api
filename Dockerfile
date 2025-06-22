@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HF_HOME=/app/.cache
 
 # HF Space offline settings
-    HF_HUB_OFFLINE=1 \
+ENV HF_HUB_OFFLINE=1 \
     HF_DATASETS_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1
     
