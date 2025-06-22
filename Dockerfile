@@ -6,12 +6,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     HF_HOME=/app/.cache
 
-# HF Space offline settings
-ENV HF_HUB_OFFLINE=1 \
-    HF_DATASETS_OFFLINE=1 \
-    TRANSFORMERS_OFFLINE=1
-    
-
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git git-lfs curl ca-certificates && \
@@ -39,6 +33,13 @@ snapshot_download(
     local_dir_use_symlinks=False,
 )
 PY
+
+
+# HF Space offline settings
+ENV HF_HUB_OFFLINE=1 \
+    HF_DATASETS_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+
 
 # Новый юзер, чтобы запускать не от root
 RUN useradd -m app && chown -R app /app
