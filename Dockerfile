@@ -4,7 +4,7 @@ FROM python:3.11-slim
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    HF_HOME=/app/.cache
+    HF_HOME=/app/.cache/huggingface
 
 
 RUN apt-get update && \
@@ -22,9 +22,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Загрузка модели для эмбеддингов
 RUN python - <<'PY'
 from huggingface_hub import snapshot_download
+
+hub_cache = Path(getenv("HF_HOME")) / "hub"
+hub_cache.mkdir(parents=True, exist_ok=True)
+
 snapshot_download(
     repo_id="intfloat/multilingual-e5-base",
-    cache_dir="/app/.cache",
+    cache_dir=getenv("HF_HOME"),
     allow_patterns=[
         "*.json","*.safetensors","*.bin",
         "sentencepiece*","vocab*","tokenizer*",
@@ -42,9 +46,8 @@ ENV HF_HUB_OFFLINE=1 \
 
 
 # Новый юзер, чтобы запускать не от root
-RUN useradd -m app && chown -R app /app
+RUN useradd -m app && chown -R app:app /app/.cache && chown -R app:app /app
 USER app
-
 
 COPY app app
 
