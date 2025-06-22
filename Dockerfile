@@ -21,6 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Загрузка модели для эмбеддингов
 RUN python - <<'PY'
+from pathlib import Path
+from os import getenv
 from huggingface_hub import snapshot_download
 
 hub_cache = Path(getenv("HF_HOME")) / "hub"
@@ -28,7 +30,7 @@ hub_cache.mkdir(parents=True, exist_ok=True)
 
 snapshot_download(
     repo_id="intfloat/multilingual-e5-base",
-    cache_dir=getenv("HF_HOME"),
+    cache_dir=hub_cache,
     allow_patterns=[
         "*.json","*.safetensors","*.bin",
         "sentencepiece*","vocab*","tokenizer*",
