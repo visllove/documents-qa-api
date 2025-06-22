@@ -27,17 +27,20 @@ answers: Dict[str, Dict[str, Any]] = {}
 
 
 @api.post('/files', response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(bg: BackgroundTasks, file: UploadFile = File(...)):
+    """Загрузка файла .docx"""
     if not file.filename.lower().endswith('.docx'):
         raise HTTPException(status_code=400, detail='Поддерживаются только .docx-файлы')
     
     file_id = str(uuid4())
 
     try:
-        await storage.save_docx(file_id, file)
+        path = await storage.save_docx(file_id, file)
     finally:
         await file.close()
 
+    # Индексация в фоне, но быстрый ответ с file_id
+    bg.add_task(storage.build_index_async, file_id, path)
     return FileUploadResponse(file_id=file_id)
 
 
@@ -45,6 +48,9 @@ async def upload_file(file: UploadFile = File(...)):
 async def ask_questions(file_id: str, q: QuestionRequest, bg: BackgroundTasks):
     if not storage.exists(file_id):
         raise HTTPException(status_code=404, detail='Файл не найден')
+    
+    if not storage.is_ready(file_id):
+        raise HTTPException(status_code=409, detail='Индекс еще не построен, повторите запрос позднее')
     
     question_id = str(uuid4())
     answers[question_id] = {'status': AnswerStatus.pending, 'answer': None}

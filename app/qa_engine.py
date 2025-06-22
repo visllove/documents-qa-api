@@ -19,6 +19,9 @@ def _load_llm():
     """Выбор и загрузка LLM (локально или через openrouter)"""
 
     if PROVIDER == 'openrouter':
+        if not os.getenv('OPENROUTER_API_KEY'):
+            raise RuntimeError('OPENROUTER_API_KEY не установлен')
+        
         from langchain_openai import ChatOpenAI
 
         return ChatOpenAI(

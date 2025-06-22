@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      platform: linux/amd64
+    environment:
+
+      # Читаем переменные из .env
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-""}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      PORT: 7860
+    ports:
+      - "7860:7860"
+    volumes:
+
+      # кеш моделей
+      - hf_cache:/app/.cache/huggingface
+
+    # для рестартов, если приложение упадет
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  hf_cache: {}

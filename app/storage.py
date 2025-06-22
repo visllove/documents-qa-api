@@ -1,6 +1,6 @@
-import os
+import concurrent.futures
+import aiofiles
 
-import asyncio
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
@@ -44,47 +44,60 @@ class DocumentInfo:
 
 documents: Dict[str, DocumentInfo] = {}
 
+# пул для задач с векторизацией документов
+_executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
-async def save_docx(file_id: str, upload: UploadFile) -> None:
-    """ Сохранение файла и создание векторного индекса (CPU-вычисления уходят в thread-pool)"""
+
+async def save_docx(file_id: str, upload: UploadFile) -> Path:
+    """Сохранение файла со статусом building без ожидания векторной обработки"""
 
     file_path = DATA_DIR / f'{file_id}.docx'
 
     # Сохранение файла
-    with open(file_path, 'wb') as out:
+    async with aiofiles.open(file_path, 'wb') as out:
         while chunk := await upload.read(1 << 20):
-            out.write(chunk)
+            await out.write(chunk)
     
     documents[file_id] = DocumentInfo(file_path=file_path, status='building')
+    return file_path
 
-    # Убираем нагрузку на процессор в threadpool, чтобы не блокировать event-loop
-    await asyncio.to_thread(_build_index, file_id, file_path)
+
+def build_index_async(file_id: str, file_path: Path) -> None:
+    """Обертка для функции _build_index, постановка задачи в пул"""
+
+    _executor.submit(_build_index, file_id, file_path)
 
 
 def _build_index(file_id: str, file_path: Path) -> None:
-    """ Извлечение текста и сохранение индексов в Chroma"""
+    """ Извлечение текста, создание эмбеддингов, запись в Chroma"""
 
-    docx_obj = DocxDocument(file_path)
-    full_text = '\n'.join(p.text for p in docx_obj.paragraphs if p.text.strip())
+    try:
+        docx_obj = DocxDocument(file_path)
+        full_text = '\n'.join(p.text for p in docx_obj.paragraphs if p.text.strip())
 
-    pages = _splitter.create_documents([full_text])
-    
-    for page in pages:
-        page.metadata['file_id'] = file_id
-    
-    _store.add_documents(pages)
-
-    documents[file_id].status = 'ready'
-    documents[file_id].pages = pages
-    
+        pages = _splitter.create_documents([full_text])
+        
+        for page in pages:
+            page.metadata['file_id'] = file_id
+        
+        _store.add_documents(pages)
+        documents[file_id].status = 'ready'
+        documents[file_id].pages = pages
+    except Exception:
+        documents[file_id].status = 'failed'
+        raise
 
 
 def exists(file_id: str) -> bool:
     return file_id in documents
 
-def ensure_ready(file_id: str):
-    info = documents[file_id]
-    if info.status != 'ready':
+
+def is_ready(file_id: str) -> bool:
+    return exists(file_id) and documents[file_id].status == 'ready'
+
+
+def ensure_ready(file_id: str) -> None:
+    if not is_ready(file_id):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Index building')
 
 
@@ -102,7 +115,7 @@ def preload_documents_from_chroma() -> None:
         file_id = md.get('file_id')
         if not file_id or file_id in seen:
             continue
-        
+
         path = DATA_DIR / f'{file_id}.docx'
         if path.exists():
             documents[file_id] = DocumentInfo(file_path=path, status='ready')
