@@ -1,7 +1,7 @@
 # Documents QA API
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Стек-FastAPI • LangChain • Docker-blue" />
+<p align="left">
+  <img src="https://img.shields.io/badge/FastAPI • LangChain • Docker-blue" />
   <img src="https://img.shields.io/badge/LLM-Qwen3 / OpenRouter-orange" />
   <img src="https://img.shields.io/badge/Эмбеддинги-e5 multilingual-green" />
   <img src="https://img.shields.io/badge/License-MIT-green" />
