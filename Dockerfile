@@ -61,7 +61,3 @@ COPY app app
 # Порт
 EXPOSE 7860
 CMD ["bash", "-c", "uvicorn app.main:api --host 0.0.0.0 --port ${PORT:-7860}"]
-
-
-# Перезапуск приложения при падении
-HEALTHCHECK CMD curl -f http://localhost:${PORT:-7860}/healthz || exit 1
